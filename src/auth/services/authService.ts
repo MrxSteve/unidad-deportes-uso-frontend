@@ -7,18 +7,18 @@ export const authService = {
   },
 
   getCurrentUser: async (): Promise<Usuario> => {
-    const { data } = await api.get('/api/auth/me');
+    const { data } = await api.get('/auth/me');
     return data;
   },
 
   refreshToken: async (refreshToken: string): Promise<RefreshTokenResponse> => {
-    const { data } = await api.post('/api/auth/refresh', { refreshToken });
+    const { data } = await api.post('/auth/refresh', { refreshToken });
     return data;
   },
 
   logout: async (): Promise<void> => {
     try {
-      await api.post('/api/auth/logout');
+      await api.post('/auth/logout');
     } finally {
       localStorage.clear();
       window.location.href = '/login';
