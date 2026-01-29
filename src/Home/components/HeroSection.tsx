@@ -7,7 +7,8 @@ export default function HeroSection() {
       className="relative bg-cover bg-center bg-no-repeat flex items-center justify-center overflow-hidden"
       style={{
         backgroundImage: `url(${homePage})`,
-        height: '90vh', // Ajusta la altura al 90% para evitar el scroll
+        // Calculamos: Toda la pantalla (100vh) menos la altura del Header (~80px)
+        height: 'calc(99.9vh - 80px)', 
       }}
     >
       {/* Overlay para mejorar la lectura del texto */}

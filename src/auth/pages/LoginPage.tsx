@@ -7,9 +7,9 @@ import { SoporteTec } from "./SoporteTec";
 
 export default function LoginPage() {
   return (
-    <div className="h-screen w-full flex items-center justify-center bg-gradient-to-br from-blue-600 to-green-300 p-4 overflow-hidden">
+    <div className="h-screen  w-full flex items-center justify-center bg-gradient-to-br from-blue-600 to-green-300 p-4 overflow-hidden">
       
-      <div className="flex w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden shadow-black/20">
+      <div className=" min-h-[700px] flex w-full max-w-4xl bg-white rounded-3xl shadow-2xl overflow-hidden shadow-black/20 ">
         
         <div className="w-full lg:w-1/2 p-8 sm:p-12 flex flex-col justify-center items-center bg-white">
           {/* Reducimos el max-w de sm a xs para que los botones y cuadros sean más cortos */}
