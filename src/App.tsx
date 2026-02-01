@@ -11,6 +11,9 @@ import CompletarPerfilPage from './auth/pages/CompletarPerfilPage';
 // Home Page
 import HomePage from './Home/pages/HomePage';
 
+// Disciplinas
+import DisciplinasPage from './features/disciplinas/pages/DisciplinasPage';
+
 // Components
 import ProtectedRoute from './auth/components/ProtectedRoute';
 
@@ -50,6 +53,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/disciplinas" element={<DisciplinasPage />} />
       </Routes>
     </BrowserRouter>
   );

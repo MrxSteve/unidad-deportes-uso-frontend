@@ -40,6 +40,20 @@ export const showConfirmAlert = (title: string, text?: string) => {
   });
 };
 
+export const showConfirmDialog = async (title: string, text?: string): Promise<boolean> => {
+  const result = await Swal.fire({
+    title,
+    text,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar',
+  });
+  return result.isConfirmed;
+};
+
 export const showLoadingAlert = (title: string = 'Procesando...') => {
   return Swal.fire({
     title,
