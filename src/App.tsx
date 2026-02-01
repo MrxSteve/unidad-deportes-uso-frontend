@@ -17,6 +17,9 @@ import DisciplinasPage from './features/disciplinas/pages/DisciplinasPage';
 // Components
 import ProtectedRoute from './auth/components/ProtectedRoute';
 
+// Admin Roles
+import RolesPage from './admin/pages/RolesPage';
+
 function App() {
   return (
     <BrowserRouter>
@@ -42,6 +45,14 @@ function App() {
           element={
             <ProtectedRoute>
               <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/usuarios"
+          element={
+            <ProtectedRoute>
+              <RolesPage />
             </ProtectedRoute>
           }
         />
