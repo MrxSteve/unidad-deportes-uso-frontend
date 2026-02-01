@@ -12,6 +12,7 @@ import {
   ROLES,
 } from "../utils/roleUtils";
 import { useNavigate } from "react-router-dom";
+import Footer from "../../shared/components/Footer";
 
 export default function DashboardPage() {
   const { usuario, activeRole, setActiveRole } = useAuthStore();
@@ -22,7 +23,8 @@ export default function DashboardPage() {
   const showSysadminContent = activeRole === ROLES.SYSADMIN;
 
   return (
-    <MainLayout>
+    <>
+      <MainLayout>
       <div className="space-y-8">
         <div className="bg-linear-to-r from-primary-500 to-secondary-500 rounded-3xl p-8 text-white shadow-xl">
           <h1 className="text-4xl font-bold mb-2">
@@ -553,5 +555,7 @@ export default function DashboardPage() {
         </Card>
       </div>
     </MainLayout>
+    <Footer />
+    </> 
   );
 }

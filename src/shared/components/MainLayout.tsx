@@ -4,7 +4,7 @@ import { useAuthStore } from "../../stores/authStore";
 import { authService } from "../../auth/services/authService";
 import Button from "./Button";
 import usoLogo from "../../assets/logo-uso.png";
-import Footer from "./Footer";
+//import Footer from "./Footer";
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -108,7 +108,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
         {children}
       </main>
 
-      <Footer />
+      
     </div>
   );
 }
