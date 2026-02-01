@@ -6,7 +6,7 @@ export const rolService = {
    * Obtiene todos los roles disponibles en el sistema
    */
   getRoles: async (): Promise<Rol[]> => {
-    const { data } = await api.get<Rol[]>('/admin/roles'); 
+    const { data } = await api.get<Rol[]>('/roles'); 
     return data;
   },
 

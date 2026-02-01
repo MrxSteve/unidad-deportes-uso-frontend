@@ -2,12 +2,12 @@ import { useState, useEffect } from 'react';
 import { rolService } from '../services/rolServices'; 
 import type { Rol } from '../../types/roles.types';
 import { RolBadge } from './RolBadge';
-import { RolSelector } from './RolSelector';
+import { RolSelector } from './RolSelector'; // Tu componente de selector mejorado
 import { showSuccessAlert, showErrorAlert, showConfirmDialog } from '../../shared/utils/alerts';
 
 interface Props {
   usuarioId: number;
-  rolesActuales: (Rol | string)[]; // Soporta el formato string de la API
+  rolesActuales: (Rol | string)[]; // Soporta el formato de búsqueda
 }
 
 export const UserRolesManager = ({ usuarioId, rolesActuales: iniciales }: Props) => {
@@ -15,79 +15,104 @@ export const UserRolesManager = ({ usuarioId, rolesActuales: iniciales }: Props)
   const [catalogo, setCatalogo] = useState<Rol[]>([]);
   const [loading, setLoading] = useState(false);
 
+  // 1. Sincronizar estado si cambia el usuario buscado
   useEffect(() => {
     setRolesUser(iniciales);
   }, [usuarioId, iniciales]);
 
+  // 2. Cargar catálogo de roles (necesario para el selector y traducir IDs)
   useEffect(() => {
-    // Si da Error 500, el catch evitará que la app se rompa
     rolService.getRoles()
       .then(setCatalogo)
       .catch(() => {
-        console.error("Error 500: No se pudo cargar el catálogo de roles.");
+        console.error("No se pudo cargar el catálogo. Verifica que seas ADMIN.");
       });
   }, []);
 
+  // 3. Manejar Asignación (Nuevo Rol)
   const handleAssign = async (rolId: number) => {
     setLoading(true);
     try {
       await rolService.asignarRol(usuarioId, rolId);
+      
+      // Actualizamos UI inmediatamente
       const nuevo = catalogo.find(r => r.id === rolId);
-      if (nuevo) setRolesUser(prev => [...prev, nuevo]);
-      showSuccessAlert("Rol asignado");
+      if (nuevo) {
+        setRolesUser(prev => [...prev, nuevo]);
+        showSuccessAlert("¡Asignado!", `Rol agregado exitosamente.`);
+      }
     } catch {
-      showErrorAlert("Error", "No se pudo asignar el rol.");
+      showErrorAlert("Error", "No se pudo asignar. Verifica tus permisos.");
     } finally {
       setLoading(false);
     }
   };
 
+  // 4. Manejar Eliminación
   const handleRemove = async (identifier: number | string) => {
-    // Si recibimos un nombre (string), buscamos su ID en el catálogo
+    // Si es string, buscamos su ID numérico en el catálogo
     const rolId = typeof identifier === 'string' 
       ? catalogo.find(r => r.nombre === identifier)?.id 
       : identifier;
 
-    if (!rolId) return showErrorAlert("Error", "No se puede eliminar: ID de rol no encontrado.");
+    if (!rolId) return showErrorAlert("Error", "No se encontró el ID del rol.");
 
-    const confirm = await showConfirmDialog("¿Remover?", "El usuario perderá este permiso.");
+    const confirm = await showConfirmDialog("¿Quitar permiso?", "El usuario perderá acceso a este nivel.");
     if (!confirm) return;
 
     setLoading(true);
     try {
       await rolService.removerRol(usuarioId, rolId);
+      
+      // Actualizamos UI filtrando el rol removido
       setRolesUser(prev => prev.filter(r => {
-        const currentId = typeof r === 'string' ? catalogo.find(c => c.nombre === r)?.id : r.id;
-        return currentId !== rolId;
+        const cId = typeof r === 'string' ? catalogo.find(c => c.nombre === r)?.id : r.id;
+        return cId !== rolId;
       }));
-      showSuccessAlert("Rol removido");
+      showSuccessAlert("Removido", "El rol ha sido eliminado.");
     } catch {
-      showErrorAlert("Error", "No se pudo remover el rol.");
+      showErrorAlert("Error", "No se pudo completar la operación.");
     } finally {
       setLoading(false);
     }
   };
 
+  // Filtro para el selector: No mostrar roles que ya tiene
   const disponibles = catalogo.filter(cat => 
     !rolesUser.some(ur => (typeof ur === 'string' ? ur === cat.nombre : ur.id === cat.id))
   );
 
   return (
-    <div className="flex flex-wrap items-center gap-3 p-3 bg-neutral-50/50 rounded-2xl border border-neutral-100 min-h-[64px]">
-      <div className="flex flex-wrap gap-2">
-        {rolesUser.map((rol, index) => (
-          <RolBadge 
-            key={index} // Usamos index para evitar errores de duplicados si fallan los IDs
-            rol={rol} 
-            onRemove={handleRemove} 
-            isLoading={loading} 
-          />
-        ))}
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-3 p-4 bg-neutral-50/50 rounded-2xl border border-neutral-100 min-h-1">
+        <div className="flex flex-wrap gap-2">
+          {rolesUser.length > 0 ? (
+            rolesUser.map((rol, index) => (
+              <RolBadge 
+                // Usamos una key combinada para evitar errores de React
+                key={typeof rol === 'string' ? `${rol}-${index}` : rol.id} 
+                rol={rol} 
+                onRemove={handleRemove} 
+                isLoading={loading} 
+              />
+            ))
+          ) : (
+            <span className="text-[11px] text-neutral-400 italic">Sin roles asignados.</span>
+          )}
+        </div>
+
+        {/* Solo mostramos el selector si hay catálogo cargado y roles disponibles */}
+        {disponibles.length > 0 && catalogo.length > 0 && (
+          <>
+            <div className="h-6 w-px bg-neutral-200 mx-2 hidden sm:block"></div>
+            <RolSelector 
+              rolesDisponibles={disponibles} 
+              onAssign={handleAssign} 
+              isLoading={loading} 
+            />
+          </>
+        )}
       </div>
-      {/* El selector solo se muestra si el catálogo cargó (No hubo error 500) */}
-      {disponibles.length > 0 && (
-        <RolSelector rolesDisponibles={disponibles} onAssign={handleAssign} isLoading={loading} />
-      )}
     </div>
   );
 };
