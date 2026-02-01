@@ -2,12 +2,12 @@ import { authService } from "../services/authService";
 import usoLogo from "../../assets/logo-uso.png";
 import heroImage from "../../assets/logoVoleyLogin.png";
 import { Link } from "react-router-dom";
-import { Terminos } from "./Terminos"; 
-import { SoporteTec } from "./SoporteTec";
+import { Terminos } from "../../shared/components/Terminos"; 
+import { SoporteTec } from "../../shared/components/SoporteTec";
 
 export default function LoginPage() {
   return (
-    <div className="h-screen  w-full flex items-center justify-center bg-gradient-to-br from-blue-600 to-green-300 p-4 overflow-hidden">
+    <div className="h-screen  w-full flex items-center justify-center bg-linear-to-br from-blue-600 to-green-300 p-4 overflow-hidden">
       
       <div className=" min-h-full flex w-full max-w-4xl bg-white rounded-3xl shadow-2xl overflow-hidden shadow-black/20 ">
         
@@ -35,7 +35,7 @@ export default function LoginPage() {
 
             {/* Este cuadro ahora se verá más compacto */}
             <div className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center gap-3 mb-6 shadow-sm">
-              <div className="flex-shrink-0 bg-blue-600 p-2 rounded-lg text-white">
+              <div className="shrink-0 bg-blue-600 p-2 rounded-lg text-white">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -98,9 +98,9 @@ export default function LoginPage() {
             src={heroImage}
             alt="Voleibol USO"
             className="absolute inset-0 w-full h-full object-cover object-center"
-            style={{ imageRendering: 'high-quality' }}
+            style={{ imageRendering: 'auto' }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent"></div>
+          <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/20 to-transparent"></div>
           <div className="absolute bottom-0 left-0 p-10 text-white">
             <div className="mb-4">
               <span className="px-4 py-1 bg-white/20 backdrop-blur-md border border-white/30 rounded-full text-[10px] font-bold uppercase tracking-widest">

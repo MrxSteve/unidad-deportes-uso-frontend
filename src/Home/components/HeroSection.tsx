@@ -1,4 +1,4 @@
-import React from 'react';
+
 import homePage from '../../../src/assets/homaPage.jpeg';
 
 export default function HeroSection() {
@@ -25,11 +25,7 @@ export default function HeroSection() {
           tu portal para una gestión deportiva institucional de vanguardia.
         </p>
 
-        <div className="flex justify-center gap-4">
-          <button className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-xl font-bold transition-all transform hover:scale-105 active:scale-95 shadow-lg">
-            Ver Disciplinas
-          </button>
-        </div>
+       
       </div>
     </section>
   );
