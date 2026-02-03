@@ -7,7 +7,7 @@ import LoginPage from './auth/pages/LoginPage';
 import AuthCallback from './auth/pages/AuthCallback';
 import DashboardPage from './auth/pages/DashboardPage';
 import CompletarPerfilPage from './auth/pages/CompletarPerfilPage';
-import PerfilPage from './auth/pages/PerfilPage'; // <--- 1. IMPORTACIÓN NUEVA
+import PerfilPage from './auth/pages/PerfilPage';
 
 // Home Page
 import HomePage from './Home/pages/HomePage';
@@ -38,10 +38,12 @@ function App() {
       />
       
       <Routes>
+        {/* Rutas Públicas */}
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
         
+        {/* Dashboard General */}
         <Route
           path="/dashboard"
           element={
@@ -51,7 +53,7 @@ function App() {
           }
         />
 
-        {/* 2. NUEVA RUTA DE PERFIL (Protegida) */}
+        {/* Perfil de Usuario */}
         <Route
           path="/perfil"
           element={
@@ -61,6 +63,9 @@ function App() {
           }
         />
 
+        {/* --- RUTAS DE GESTIÓN DE USUARIOS --- */}
+        
+        {/* 1. Ruta para SysAdmin (Ve todo) */}
         <Route
           path="/admin/usuarios"
           element={
@@ -69,7 +74,19 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* 2. Ruta para Manager (Ve solo Student/Manager) */}
+        {/* Reutilizamos RolesPage porque ya tiene la lógica de filtro interna */}
+        <Route
+          path="/manager/usuarios"
+          element={
+            <ProtectedRoute>
+              <RolesPage />
+            </ProtectedRoute>
+          }
+        />
         
+        {/* Otras Rutas Protegidas */}
         <Route
           path="/completar-perfil"
           element={

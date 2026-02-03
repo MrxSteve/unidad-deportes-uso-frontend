@@ -7,22 +7,35 @@ import { Loader2, ShieldCheck } from 'lucide-react';
 interface Props {
   usuarioId: number;
   rolesActuales: (Rol | string)[]; 
+  allowedRoles?: string[]; // NUEVA PROP: Para filtrar qué tarjetas mostrar
 }
 
-export const UserRolesManager = ({ usuarioId, rolesActuales: iniciales }: Props) => {
+export const UserRolesManager = ({ usuarioId, rolesActuales: iniciales, allowedRoles }: Props) => {
   const [rolesUser, setRolesUser] = useState<(Rol | string)[]>(iniciales);
   const [catalogo, setCatalogo] = useState<Rol[]>([]);
-  const [loadingId, setLoadingId] = useState<number | null>(null); // Loading individual por rol
+  const [loadingId, setLoadingId] = useState<number | null>(null);
 
+  // Sincronizar estado si cambian los props
   useEffect(() => {
     setRolesUser(iniciales);
   }, [usuarioId, iniciales]);
 
+  // Cargar catálogo y FILTRAR según permisos
   useEffect(() => {
     rolService.getRoles()
-      .then(setCatalogo)
+      .then((data) => {
+        // Lógica de Filtrado de Seguridad
+        if (allowedRoles && allowedRoles.length > 0) {
+          // Solo mostramos las tarjetas que coincidan con la lista permitida
+          const filtrados = data.filter(r => allowedRoles.includes(r.nombre));
+          setCatalogo(filtrados);
+        } else {
+          // Si no hay restricciones (SysAdmin), mostramos todo
+          setCatalogo(data);
+        }
+      })
       .catch(() => console.error("Error al cargar catálogo de roles."));
-  }, []);
+  }, [allowedRoles]); // Se re-ejecuta si cambian los permisos
 
   // Función para verificar si el usuario ya tiene el rol
   const tieneRol = (rolNombre: string) => {
@@ -34,8 +47,8 @@ export const UserRolesManager = ({ usuarioId, rolesActuales: iniciales }: Props)
   const handleToggleRol = async (rol: Rol) => {
     const yaLoTiene = tieneRol(rol.nombre);
     
+    // --- ESCENARIO: QUITAR ROL ---
     if (yaLoTiene) {
-      // Lógica de eliminación
       const confirm = await showConfirmDialog(
         `¿Remover rol ${rol.nombre}?`, 
         "El usuario perderá los accesos asociados."
@@ -49,6 +62,8 @@ export const UserRolesManager = ({ usuarioId, rolesActuales: iniciales }: Props)
         } else {
           await rolService.removerRol(usuarioId, rol.id);
         }
+        
+        // Actualizar UI
         setRolesUser(prev => prev.filter(r => 
           (typeof r === 'string' ? r !== rol.nombre : r.id !== rol.id)
         ));
@@ -58,8 +73,9 @@ export const UserRolesManager = ({ usuarioId, rolesActuales: iniciales }: Props)
       } finally {
         setLoadingId(null);
       }
+    
+    // --- ESCENARIO: ASIGNAR ROL ---
     } else {
-      // Lógica de asignación
       setLoadingId(rol.id);
       try {
         if (rol.nombre === 'MANAGER') {
@@ -67,6 +83,8 @@ export const UserRolesManager = ({ usuarioId, rolesActuales: iniciales }: Props)
         } else {
           await rolService.asignarRol(usuarioId, rol.id);
         }
+        
+        // Actualizar UI
         setRolesUser(prev => [...prev, rol]);
         showSuccessAlert("Asignado", `Ahora el usuario es ${rol.nombre}.`);
       } catch {
@@ -79,53 +97,59 @@ export const UserRolesManager = ({ usuarioId, rolesActuales: iniciales }: Props)
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      {catalogo.map((rol) => {
-        const activo = tieneRol(rol.nombre);
-        const isLoading = loadingId === rol.id;
+      {catalogo.length > 0 ? (
+        catalogo.map((rol) => {
+          const activo = tieneRol(rol.nombre);
+          const isLoading = loadingId === rol.id;
 
-        return (
-          <label
-            key={rol.id}
-            className={`
-              relative flex items-center justify-between p-4 rounded-2xl border-2 transition-all cursor-pointer
-              ${activo 
-                ? 'bg-green-50 border-green-500 shadow-sm shadow-green-100' 
-                : 'bg-white border-neutral-100 hover:border-neutral-200'}
-              ${isLoading ? 'opacity-70 pointer-events-none' : ''}
-            `}
-          >
-            <div className="flex items-center gap-3">
-              <div className={`
-                p-2 rounded-xl 
-                ${activo ? 'bg-green-500 text-white' : 'bg-neutral-100 text-neutral-400'}
-              `}>
-                <ShieldCheck size={20} />
+          return (
+            <label
+              key={rol.id}
+              className={`
+                relative flex items-center justify-between p-4 rounded-2xl border-2 transition-all cursor-pointer select-none
+                ${activo 
+                  ? 'bg-green-50 border-green-500 shadow-sm shadow-green-100' 
+                  : 'bg-white border-neutral-100 hover:border-neutral-200'}
+                ${isLoading ? 'opacity-70 pointer-events-none' : ''}
+              `}
+            >
+              <div className="flex items-center gap-3">
+                <div className={`
+                  p-2 rounded-xl transition-colors
+                  ${activo ? 'bg-green-500 text-white' : 'bg-neutral-100 text-neutral-400'}
+                `}>
+                  <ShieldCheck size={20} />
+                </div>
+                <div>
+                  <span className={`block font-bold text-sm ${activo ? 'text-green-700' : 'text-neutral-700'}`}>
+                    {rol.nombre}
+                  </span>
+                  <span className="text-[10px] text-neutral-400 uppercase font-medium tracking-tight">
+                    {activo ? 'Asignado' : 'Disponible'}
+                  </span>
+                </div>
               </div>
-              <div>
-                <span className={`block font-bold text-sm ${activo ? 'text-green-700' : 'text-neutral-700'}`}>
-                  {rol.nombre}
-                </span>
-                <span className="text-[10px] text-neutral-400 uppercase font-medium tracking-tight">
-                  Acceso de {rol.nombre.toLowerCase()}
-                </span>
-              </div>
-            </div>
 
-            <div className="flex items-center">
-              {isLoading ? (
-                <Loader2 className="animate-spin text-neutral-400" size={20} />
-              ) : (
-                <input
-                  type="checkbox"
-                  className="w-5 h-5 accent-green-600 rounded-lg cursor-pointer"
-                  checked={activo}
-                  onChange={() => handleToggleRol(rol)}
-                />
-              )}
-            </div>
-          </label>
-        );
-      })}
+              <div className="flex items-center">
+                {isLoading ? (
+                  <Loader2 className="animate-spin text-neutral-400" size={20} />
+                ) : (
+                  <input
+                    type="checkbox"
+                    className="w-5 h-5 accent-green-600 rounded-lg cursor-pointer"
+                    checked={activo}
+                    onChange={() => handleToggleRol(rol)}
+                  />
+                )}
+              </div>
+            </label>
+          );
+        })
+      ) : (
+        <div className="col-span-full py-8 text-center text-neutral-400 text-sm italic bg-neutral-50 rounded-2xl border border-dashed border-neutral-200">
+          No hay roles disponibles para asignar con tu nivel de permiso.
+        </div>
+      )}
     </div>
   );
 };

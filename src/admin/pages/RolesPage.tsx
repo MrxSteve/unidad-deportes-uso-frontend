@@ -6,12 +6,23 @@ import { UserRolesManager } from "../components/UserRolesManager";
 import { showErrorAlert } from "../../shared/utils/alerts";
 import MainLayout from "../../shared/components/MainLayout";
 import Footer from '../../shared/components/Footer';
+// 1. Importaciones necesarias para la seguridad
+import { useAuthStore } from "../../stores/authStore"; 
+import { ROLES } from "../../auth/utils/roleUtils";
 
 export default function RolesPage() {
   const [email, setEmail] = useState("");
-  const [usuario, setUsuario] = useState<any>(null);
+  // Renombramos para no confundir con el usuario logueado
+  const [usuarioEncontrado, setUsuarioEncontrado] = useState<any>(null); 
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+
+  const { activeRole } = useAuthStore();
+
+  const permisosDeAsignacion = activeRole === ROLES.MANAGER 
+    ? ['STUDENT', 'MANAGER'] 
+    : undefined;
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,10 +30,10 @@ export default function RolesPage() {
     setLoading(true);
     try {
       const data = await usuarioService.getUsuarioByEmail(email);
-      setUsuario(data);
+      setUsuarioEncontrado(data);
     } catch {
       showErrorAlert("No encontrado", "Verifica el correo ingresado.");
-      setUsuario(null);
+      setUsuarioEncontrado(null);
     } finally {
       setLoading(false);
     }
@@ -31,21 +42,18 @@ export default function RolesPage() {
   return (
     <>
       <MainLayout>
-        {/* Agregamos overflow-x-hidden al contenedor padre por si acaso */}
         <div className="max-w-4xl mx-auto py-6 md:py-12 px-4 md:px-6 relative">
           
-          {/* BOTÓN VOLVER: Adaptable */}
           <div className="lg:absolute lg:-left-16 lg:top-14 mb-6 lg:mb-0">
             <button 
               onClick={() => navigate('/dashboard')}
               className="flex items-center gap-2 lg:gap-0 justify-center min-w-16 lg:min-w-0 lg:w-12 lg:h-12 py-2 px-4 lg:p-0 rounded-2xl lg:rounded-full bg-white border border-neutral-200 text-neutral-500 shadow-sm hover:shadow-md hover:text-primary-600 transition-all group"
             >
               <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-              <span className="text-sm font-bold lg:hidden">Volver al inicio</span>
+              <span className="text-sm font-bold lg:hidden">Volver</span>
             </button>
           </div>
 
-          {/* Header: Centrado en móvil, izquierda en desktop */}
           <header className="mb-8 md:mb-12 text-center md:text-left">
             <h1 className="text-3xl md:text-4xl font-black text-secondary-600 tracking-tight leading-tight">
               Gestión de <span className="text-green-500">Roles</span>
@@ -55,7 +63,6 @@ export default function RolesPage() {
             </p>
           </header>
 
-          {/* Buscador: Se ajusta el padding y el botón en móvil */}
           <form onSubmit={handleSearch} className="relative mb-10 md:mb-16">
             <div className="relative flex flex-col md:flex-row items-stretch md:items-center gap-3">
               <div className="relative flex-1">
@@ -79,22 +86,21 @@ export default function RolesPage() {
             </div>
           </form>
 
-          {/* Resultado del Usuario / Empty State */}
           <div className="w-full">
-            {usuario ? (
-              <div className="bg-white rounded-4xl md:rounded-[2.5rem] shadow-xl border border-neutral-100 overflow-hidden">
-                {/* Cabecera del resultado adaptable */}
+            {usuarioEncontrado ? (
+              <div className="bg-white rounded-4xl md:rounded-[2.5rem] shadow-xl border border-neutral-100 overflow-hidden animate-in fade-in slide-in-from-bottom-4">
+                
                 <div className="bg-neutral-50/50 px-6 py-10 md:px-10 md:py-8 border-b border-neutral-100 flex flex-col sm:flex-row items-center text-center sm:text-left gap-4">
                   <div className="h-16 w-16 bg-green-600 text-white rounded-2xl flex items-center justify-center shrink-0">
                     <User size={30} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <h2 className="text-xl md:text-2xl font-black text-neutral-900 truncate uppercase">
-                      {usuario.nombreCompleto}
+                      {usuarioEncontrado.nombreCompleto}
                     </h2>
                     <div className="flex items-center justify-center sm:justify-start text-neutral-500 mt-1 break-all">
                       <Mail size={14} className="mr-2 shrink-0" />
-                      <span className="text-sm md:text-base">{usuario.email}</span>
+                      <span className="text-sm md:text-base">{usuarioEncontrado.email}</span>
                     </div>
                   </div>
                   <div className="bg-green-100 text-green-700 text-[10px] font-black px-3 py-1 rounded-lg border border-green-200 shrink-0">
@@ -103,13 +109,19 @@ export default function RolesPage() {
                 </div>
 
                 <div className="p-6 md:p-10">
-                   {/* ... contenido de UserRolesManager */}
                    <div className="flex items-center space-x-2 mb-6">
                       <ShieldAlert size={20} className="text-green-600" />
                       <h3 className="font-bold text-neutral-800">Privilegios y Roles</h3>
                    </div>
                    <div className="bg-neutral-50 rounded-2xl p-4 md:p-8 border-2 border-dashed border-neutral-200">
-                      <UserRolesManager usuarioId={usuario.id} rolesActuales={usuario.roles} />
+                      
+                      {/* 4. Pasamos el filtro de seguridad al componente */}
+                      <UserRolesManager 
+                        usuarioId={usuarioEncontrado.id} 
+                        rolesActuales={usuarioEncontrado.roles} 
+                        allowedRoles={permisosDeAsignacion} 
+                      />
+
                    </div>
                 </div>
               </div>
