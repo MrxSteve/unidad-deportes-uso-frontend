@@ -72,7 +72,7 @@ export default function PerfilPage() {
                 <h1 className="text-3xl font-bold text-neutral-800">{usuario.nombreCompleto}</h1>
                 <p className="text-neutral-600 mt-1 flex items-center justify-center md:justify-start gap-2">
                   <Mail size={16} />
-                  {usuario.emailInstitucional}
+                  {usuario.email}
                 </p>
               </div>
 
