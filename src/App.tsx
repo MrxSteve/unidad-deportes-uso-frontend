@@ -5,7 +5,7 @@ import 'react-toastify/dist/ReactToastify.css';
 // Auth Pages
 import LoginPage from './auth/pages/LoginPage';
 import AuthCallback from './auth/pages/AuthCallback';
-import DashboardPage from './auth/pages/DashboardPage';
+import DashboardHome from './auth/pages/DashboardHome';
 import CompletarPerfilPage from './auth/pages/CompletarPerfilPage';
 import PerfilPage from './auth/pages/PerfilPage'; // <--- 1. IMPORTACIÓN NUEVA
 
@@ -46,7 +46,7 @@ function App() {
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <DashboardPage />
+              <DashboardHome />
             </ProtectedRoute>
           }
         />
@@ -79,7 +79,14 @@ function App() {
           }
         />
         
-        <Route path="/disciplinas" element={<DisciplinasPage />} />
+        <Route
+          path="/disciplinas"
+          element={
+            <ProtectedRoute>
+              <DisciplinasPage />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );

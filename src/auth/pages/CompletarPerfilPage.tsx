@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
-import MainLayout from "../../shared/components/MainLayout";
+import { useNavigate } from "react-router-dom";
+import { User, Building2, Phone, Calendar, IdCard } from "lucide-react";
+import DashboardLayout from "../../shared/components/DashboardLayout";
+import { useAuthStore } from "../../stores/authStore";
 import Card, {
   CardHeader,
   CardTitle,
@@ -12,6 +15,8 @@ import type { Carrera, PerfilUpdateDTO } from "../../types/perfil.types";
 import Swal from "sweetalert2";
 
 export default function CompletarPerfilPage() {
+  const navigate = useNavigate();
+  const { usuario } = useAuthStore();
   const [carreras, setCarreras] = useState<Carrera[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -28,11 +33,27 @@ export default function CompletarPerfilPage() {
   useEffect(() => {
     const initData = async () => {
       try {
-        // Usamos el nuevo método del servicio unificado
-        const data = await carreraService.getCarreras();
-        setCarreras(data);
+        const [carrerasData, perfilData] = await Promise.all([
+          carreraService.getCarreras(),
+          carreraService.getMe()
+        ]);
+        
+        setCarreras(carrerasData);
+        
+        if (perfilData) {
+          setFormData({
+            expediente: perfilData.expediente || "",
+            codigo: perfilData.codigo || "",
+            telefono: perfilData.telefono || "",
+            genero: perfilData.genero || "",
+            fechaNacimiento: perfilData.fechaNacimiento 
+              ? perfilData.fechaNacimiento.split('T')[0] 
+              : "",
+            carreraId: perfilData.carrera?.id || 0,
+          });
+        }
       } catch (error) {
-        console.error("Error cargando carreras:", error);
+        console.error("Error cargando datos:", error);
       } finally {
         setLoading(false);
       }
@@ -57,12 +78,13 @@ export default function CompletarPerfilPage() {
     setSubmitting(true);
     try {
       await carreraService.updateMe(formData);
-      Swal.fire({
+      await Swal.fire({
         title: "¡Perfil Actualizado!",
         text: "Tu información se ha guardado correctamente.",
         icon: "success",
         confirmButtonColor: "#1d4ed8",
       });
+      navigate('/perfil');
     } catch (error) {
       Swal.fire("Error", "No se pudo actualizar el perfil.", "error");
     } finally {
@@ -71,33 +93,28 @@ export default function CompletarPerfilPage() {
   };
 
   return (
-    <MainLayout>
+    <DashboardLayout>
       <div className="max-w-3xl mx-auto animate-fade-in">
-        <Card className="shadow-xl border-none ring-1 ring-neutral-200">
-          <CardHeader className="border-b border-neutral-100 bg-neutral-50/50">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary-600 rounded-lg text-white">
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
+        <Card className="shadow-2xl border-none overflow-hidden">
+          <div className="h-2 bg-gradient-to-r from-primary-500 via-secondary-500 to-primary-600"></div>
+          <CardHeader className="bg-gradient-to-br from-neutral-50 to-white p-8">
+            <div className="flex items-start gap-4">
+              <div className="p-3 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl text-white shadow-lg">
+                <User className="w-7 h-7" />
               </div>
-              <div>
-                <CardTitle className="text-xl font-bold text-neutral-800">
-                  Información Personal
+              <div className="flex-1">
+                <CardTitle className="text-2xl font-bold text-neutral-800 mb-1">
+                  Editar Perfil
                 </CardTitle>
-                <p className="text-sm text-neutral-500">
-                  Completa los datos para personalizar tu experiencia
+                <p className="text-sm text-neutral-600">
+                  Actualiza tu información personal y académica
                 </p>
+                {usuario?.nombreCompleto && (
+                  <p className="text-xs text-neutral-500 mt-2 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                    Editando perfil de {usuario.nombreCompleto}
+                  </p>
+                )}
               </div>
             </div>
           </CardHeader>
@@ -105,30 +122,45 @@ export default function CompletarPerfilPage() {
           <CardContent className="p-8">
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Sección: Identificación Académica */}
-              <div className="space-y-4">
-                <h3 className="text-xs font-semibold text-primary-600 uppercase tracking-wider flex items-center gap-2">
-                  <span className="w-8 h-px bg-primary-200"></span>{" "}
-                  Identificación Académica
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Input
-                    label="Expediente"
-                    name="expediente"
-                    value={formData.expediente}
-                    onChange={handleChange}
-                    placeholder="Ej: 25655"
-                    className="hover:border-primary-300 transition-colors"
-                    required
-                  />
-                  <Input
-                    label="Código de Estudiante"
-                    name="codigo"
-                    value={formData.codigo}
-                    onChange={handleChange}
-                    placeholder="Ej: MG22i04001"
-                    className="hover:border-primary-300 transition-colors"
-                    required
-                  />
+              <div className="space-y-5">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-50 rounded-lg">
+                    <Building2 className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <h3 className="text-sm font-bold text-neutral-700 uppercase tracking-wide">
+                    Identificación Académica
+                  </h3>
+                  <div className="flex-1 h-px bg-neutral-200"></div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div>
+                    <label className="block text-sm font-semibold text-neutral-700 mb-2 flex items-center gap-2">
+                      <IdCard className="w-4 h-4 text-neutral-500" />
+                      Expediente <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      name="expediente"
+                      value={formData.expediente}
+                      onChange={handleChange}
+                      placeholder="Ej: 25655"
+                      className="hover:border-primary-400 focus:border-primary-500 transition-colors"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-neutral-700 mb-2 flex items-center gap-2">
+                      <IdCard className="w-4 h-4 text-neutral-500" />
+                      Código de Estudiante <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      name="codigo"
+                      value={formData.codigo}
+                      onChange={handleChange}
+                      placeholder="Ej: MG22i04001"
+                      className="hover:border-primary-400 focus:border-primary-500 transition-colors"
+                      required
+                    />
+                  </div>
                 </div>
 
                 <div className="relative">
@@ -175,21 +207,32 @@ export default function CompletarPerfilPage() {
               </div>
 
               {/* Sección: Datos de Contacto y Perfil */}
-              <div className="space-y-4 pt-4">
-                <h3 className="text-xs font-semibold text-primary-600 uppercase tracking-wider flex items-center gap-2">
-                  <span className="w-8 h-px bg-primary-200"></span> Contacto y
-                  Biografía
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Input
-                    label="Teléfono"
-                    name="telefono"
-                    type="tel"
-                    value={formData.telefono}
-                    onChange={handleChange}
-                    placeholder="Ej: 7890-1234"
-                    required
-                  />
+              <div className="space-y-5 pt-2">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-green-50 rounded-lg">
+                    <User className="w-5 h-5 text-green-600" />
+                  </div>
+                  <h3 className="text-sm font-bold text-neutral-700 uppercase tracking-wide">
+                    Información Personal
+                  </h3>
+                  <div className="flex-1 h-px bg-neutral-200"></div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div>
+                    <label className="block text-sm font-semibold text-neutral-700 mb-2 flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-neutral-500" />
+                      Teléfono <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      name="telefono"
+                      type="tel"
+                      value={formData.telefono}
+                      onChange={handleChange}
+                      placeholder="Ej: 7890-1234"
+                      className="hover:border-primary-400 focus:border-primary-500 transition-colors"
+                      required
+                    />
+                  </div>
                   <div className="relative">
                     <label className="block text-sm font-semibold text-neutral-700 mb-1.5">
                       Género <span className="text-primary-500 ml-0.5">*</span>
@@ -226,40 +269,54 @@ export default function CompletarPerfilPage() {
                   </div>
                 </div>
 
-                <Input
-                  label="Fecha de Nacimiento"
-                  name="fechaNacimiento"
-                  type="date"
-                  value={formData.fechaNacimiento}
-                  onChange={handleChange}
-                  className="w-full"
-                  required
-                />
+                <div>
+                  <label className="block text-sm font-semibold text-neutral-700 mb-2 flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-neutral-500" />
+                    Fecha de Nacimiento <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    name="fechaNacimiento"
+                    type="date"
+                    value={formData.fechaNacimiento}
+                    onChange={handleChange}
+                    max={new Date().toISOString().split('T')[0]}
+                    className="w-full hover:border-primary-400 focus:border-primary-500 transition-colors"
+                    required
+                  />
+                  <p className="text-xs text-neutral-500 mt-1.5">Solo se permiten fechas pasadas</p>
+                </div>
               </div>
 
               {/* Acciones */}
-              <div className="flex items-center justify-end gap-3 pt-6 border-t border-neutral-100">
-                <Button
-                  variant="outline"
-                  type="button"
-                  disabled={submitting}
-                  className="px-6 rounded-xl hover:bg-neutral-100 transition-colors"
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  variant="primary"
-                  type="submit"
-                  isLoading={submitting}
-                  className="px-8 rounded-xl shadow-lg shadow-primary-500/30 hover:shadow-primary-500/40 active:scale-95 transition-all font-bold"
-                >
-                  {submitting ? "Guardando..." : "Finalizar Perfil"}
-                </Button>
+              <div className="flex items-center justify-between gap-4 pt-8 mt-2 border-t-2 border-neutral-100">
+                <p className="text-xs text-neutral-500 flex items-center gap-1">
+                  <span className="text-red-500">*</span> Campos obligatorios
+                </p>
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    type="button"
+                    onClick={() => navigate('/perfil')}
+                    disabled={submitting}
+                    className="px-6 py-2.5 rounded-xl hover:bg-neutral-100 border-2 font-semibold transition-all"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    variant="primary"
+                    type="submit"
+                    isLoading={submitting}
+                    disabled={submitting}
+                    className="px-8 py-2.5 rounded-xl shadow-lg shadow-primary-500/30 hover:shadow-xl hover:shadow-primary-500/40 active:scale-95 transition-all font-bold"
+                  >
+                    {submitting ? "Guardando..." : "💾 Guardar Cambios"}
+                  </Button>
+                </div>
               </div>
             </form>
           </CardContent>
         </Card>
       </div>
-    </MainLayout>
+    </DashboardLayout>
   );
 }

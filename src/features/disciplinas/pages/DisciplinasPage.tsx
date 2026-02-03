@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import MainLayout from '../../../shared/components/MainLayout';
+import DashboardLayout from '../../../shared/components/DashboardLayout';
 import Card, { CardHeader, CardTitle, CardContent } from '../../../shared/components/Card';
 import Button from '../../../shared/components/Button';
 import LoadingSpinner from '../../../shared/components/LoadingSpinner';
@@ -76,16 +76,16 @@ export default function DisciplinasPage() {
 
   if (loading) {
     return (
-      <MainLayout>
+      <DashboardLayout>
         <div className="flex justify-center items-center h-96">
           <LoadingSpinner size="lg" />
         </div>
-      </MainLayout>
+      </DashboardLayout>
     );
   }
 
   return (
-    <MainLayout>
+    <DashboardLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -184,6 +184,6 @@ export default function DisciplinasPage() {
           onSuccess={handleDisciplinaActualizada}
         />
       )}
-    </MainLayout>
+    </DashboardLayout>
   );
 }
