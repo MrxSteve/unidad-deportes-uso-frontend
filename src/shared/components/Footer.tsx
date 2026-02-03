@@ -41,7 +41,7 @@ export default function Footer() {
         </div>
 
         {/* Línea decorativa inferior (opcional) */}
-        <div className="mt-8 h-1 w-full bg-gradient-to-r from-transparent via-blue-500/20 to-transparent"></div>
+        <div className="mt-8 h-1 w-full bg-linear-to-r from-transparent via-blue-500/20 to-transparent"></div>
       </div>
     </footer>
   );

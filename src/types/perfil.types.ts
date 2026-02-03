@@ -14,23 +14,17 @@ export interface CarreraRequest {
 }
 
 //Perfil Types
-
-export interface Perfil {
+export interface PerfilMeResponse {
+  id?: number;
   expediente: string;
   codigo: string;
   telefono: string;
-  genero: 'M' | 'F' | 'OTRO';
-  fechaNacimiento: string; 
-  carreraId: number;
-}
-
-// Response 
-export interface PerfilResponse extends Perfil {
-  id?: number; 
+  genero: string;
+  fechaNacimiento: string;
+  carrera: Carrera;
   email?: string;
 }
 
-// Request 
 export interface PerfilUpdateDTO {
   expediente: string;
   codigo: string;

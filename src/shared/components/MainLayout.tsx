@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
-import  { useState} from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom"; // 1. Importamos useNavigate
 import { useAuthStore } from "../../stores/authStore";
 import { authService } from "../../auth/services/authService";
 import Button from "./Button";
 import usoLogo from "../../assets/logo-uso.png";
-//import Footer from "./Footer";
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -13,6 +13,12 @@ interface MainLayoutProps {
 export default function MainLayout({ children }: MainLayoutProps) {
   const { usuario } = useAuthStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate(); // 2. Inicializamos el hook
+
+  const handleNavigateToProfile = () => {
+    navigate('/perfil'); // Asumiendo que esta será tu ruta
+    setIsMenuOpen(false); // Cerramos el menú al hacer click
+  };
 
   return (
     <div className="min-h-screen bg-linear-to-br from-neutral-50 via-primary-50/20 to-secondary-50/20">
@@ -20,9 +26,9 @@ export default function MainLayout({ children }: MainLayoutProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             
-            {/* Logo y Texto - Responsivo */}
+            {/* Logo y Texto */}
             <div className="flex items-center">
-              <div className="shrink-0 flex items-center gap-2 md:gap-4 group cursor-pointer">
+              <div className="shrink-0 flex items-center gap-2 md:gap-4 group cursor-pointer" onClick={() => navigate('/dashboard')}>
                 <img
                   src={usoLogo}
                   alt="Logo USO"
@@ -43,7 +49,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
             <div className="flex items-center">
               {usuario && (
                 <div className="relative">
-                  {/* Trigger del Menú (Foto) */}
+                  {/* Trigger del Menú */}
                   <button 
                     onClick={() => setIsMenuOpen(!isMenuOpen)}
                     className="flex items-center space-x-3 bg-neutral-50 hover:bg-neutral-100 p-1 md:px-4 md:py-2 rounded-full md:rounded-2xl border border-neutral-200 transition-all focus:ring-2 focus:ring-primary-500/20"
@@ -60,7 +66,6 @@ export default function MainLayout({ children }: MainLayoutProps) {
                       </div>
                     )}
                     
-                    {/* Texto visible solo en Desktop */}
                     <div className="hidden md:block text-left">
                       <p className="text-sm font-bold text-neutral-800 leading-none">
                         {usuario.nombreCompleto.split(' ')[0]}
@@ -69,10 +74,9 @@ export default function MainLayout({ children }: MainLayoutProps) {
                     </div>
                   </button>
 
-                  {/* Dropdown Menu (Móvil y Desktop) */}
+                  {/* Dropdown Menu */}
                   {isMenuOpen && (
                     <>
-                      {/* Overlay para cerrar al hacer click fuera */}
                       <div className="fixed inset-0 z-10" onClick={() => setIsMenuOpen(false)}></div>
                       
                       <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-neutral-100 py-2 z-20 animate-in fade-in zoom-in duration-200">
@@ -81,7 +85,22 @@ export default function MainLayout({ children }: MainLayoutProps) {
                           <p className="text-xs text-neutral-500 truncate">{usuario.email}</p>
                         </div>
                         
-                        <div className="p-2">
+                        <div className="p-2 space-y-1">
+                          {/* 3. BOTÓN DE PERFIL AGREGADO */}
+                          <Button
+                            onClick={handleNavigateToProfile}
+                            variant="outline"
+                            className="w-full justify-start border-none hover:bg-neutral-50 hover:text-primary-600 text-neutral-600 transition-colors"
+                          >
+                            <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            Ver mi Perfil
+                          </Button>
+
+                          <div className="h-px bg-neutral-100 my-1 mx-2"></div>
+
+                          {/* Botón Cerrar Sesión */}
                           <Button
                             onClick={() => authService.logout()}
                             variant="outline"
@@ -107,8 +126,6 @@ export default function MainLayout({ children }: MainLayoutProps) {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {children}
       </main>
-
-      
     </div>
   );
 }

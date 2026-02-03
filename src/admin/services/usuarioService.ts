@@ -16,6 +16,11 @@ export const usuarioService = {
     return data;
   },
 
+  getContarTodos: async (): Promise<number> => {
+    const { data } = await api.get<number>('/usuarios/contar-todos');
+    return data;
+  },
+
   getUsuarioByEmail: async (email: string): Promise<Usuario> => {
     const { data } = await api.get<Usuario>('/usuarios/email', {
       params: { email } 

@@ -7,6 +7,7 @@ import LoginPage from './auth/pages/LoginPage';
 import AuthCallback from './auth/pages/AuthCallback';
 import DashboardPage from './auth/pages/DashboardPage';
 import CompletarPerfilPage from './auth/pages/CompletarPerfilPage';
+import PerfilPage from './auth/pages/PerfilPage'; // <--- 1. IMPORTACIÓN NUEVA
 
 // Home Page
 import HomePage from './Home/pages/HomePage';
@@ -40,6 +41,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
+        
         <Route
           path="/dashboard"
           element={
@@ -48,6 +50,17 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* 2. NUEVA RUTA DE PERFIL (Protegida) */}
+        <Route
+          path="/perfil"
+          element={
+            <ProtectedRoute>
+              <PerfilPage />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/admin/usuarios"
           element={
@@ -56,6 +69,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        
         <Route
           path="/completar-perfil"
           element={
@@ -64,6 +78,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        
         <Route path="/disciplinas" element={<DisciplinasPage />} />
       </Routes>
     </BrowserRouter>

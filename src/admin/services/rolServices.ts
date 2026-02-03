@@ -18,5 +18,16 @@ export const rolService = {
 
   removerRol: async (usuarioId: number, rolId: number): Promise<void> => {
     await api.patch(`/admin/roles/remover/${usuarioId}/${rolId}`);
+  },
+
+  // --- NUEVOS: Métodos Específicos para Manager ---
+
+
+  convertirEnManager: async (usuarioId: number): Promise<void> => {
+    await api.patch(`/manager/roles/convertir/${usuarioId}`);
+  },
+
+  removerManager: async (usuarioId: number): Promise<void> => {
+    await api.patch(`/manager/roles/remover/${usuarioId}`);
   }
 };

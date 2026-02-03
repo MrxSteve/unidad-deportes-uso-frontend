@@ -1,118 +1,131 @@
 import { useState, useEffect } from 'react';
 import { rolService } from '../services/rolServices'; 
 import type { Rol } from '../../types/roles.types';
-import { RolBadge } from './RolBadge';
-import { RolSelector } from './RolSelector'; // Tu componente de selector mejorado
 import { showSuccessAlert, showErrorAlert, showConfirmDialog } from '../../shared/utils/alerts';
+import { Loader2, ShieldCheck } from 'lucide-react';
 
 interface Props {
   usuarioId: number;
-  rolesActuales: (Rol | string)[]; // Soporta el formato de búsqueda
+  rolesActuales: (Rol | string)[]; 
 }
 
 export const UserRolesManager = ({ usuarioId, rolesActuales: iniciales }: Props) => {
   const [rolesUser, setRolesUser] = useState<(Rol | string)[]>(iniciales);
   const [catalogo, setCatalogo] = useState<Rol[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loadingId, setLoadingId] = useState<number | null>(null); // Loading individual por rol
 
-  // 1. Sincronizar estado si cambia el usuario buscado
   useEffect(() => {
     setRolesUser(iniciales);
   }, [usuarioId, iniciales]);
 
-  // 2. Cargar catálogo de roles (necesario para el selector y traducir IDs)
   useEffect(() => {
     rolService.getRoles()
       .then(setCatalogo)
-      .catch(() => {
-        console.error("No se pudo cargar el catálogo. Verifica que seas ADMIN.");
-      });
+      .catch(() => console.error("Error al cargar catálogo de roles."));
   }, []);
 
-  // 3. Manejar Asignación (Nuevo Rol)
-  const handleAssign = async (rolId: number) => {
-    setLoading(true);
-    try {
-      await rolService.asignarRol(usuarioId, rolId);
-      
-      // Actualizamos UI inmediatamente
-      const nuevo = catalogo.find(r => r.id === rolId);
-      if (nuevo) {
-        setRolesUser(prev => [...prev, nuevo]);
-        showSuccessAlert("¡Asignado!", `Rol agregado exitosamente.`);
+  // Función para verificar si el usuario ya tiene el rol
+  const tieneRol = (rolNombre: string) => {
+    return rolesUser.some(ur => 
+      typeof ur === 'string' ? ur === rolNombre : ur.nombre === rolNombre
+    );
+  };
+
+  const handleToggleRol = async (rol: Rol) => {
+    const yaLoTiene = tieneRol(rol.nombre);
+    
+    if (yaLoTiene) {
+      // Lógica de eliminación
+      const confirm = await showConfirmDialog(
+        `¿Remover rol ${rol.nombre}?`, 
+        "El usuario perderá los accesos asociados."
+      );
+      if (!confirm) return;
+
+      setLoadingId(rol.id);
+      try {
+        if (rol.nombre === 'MANAGER') {
+          await rolService.removerManager(usuarioId);
+        } else {
+          await rolService.removerRol(usuarioId, rol.id);
+        }
+        setRolesUser(prev => prev.filter(r => 
+          (typeof r === 'string' ? r !== rol.nombre : r.id !== rol.id)
+        ));
+        showSuccessAlert("Removido", "Permiso actualizado.");
+      } catch {
+        showErrorAlert("Error", "No se pudo quitar el rol.");
+      } finally {
+        setLoadingId(null);
       }
-    } catch {
-      showErrorAlert("Error", "No se pudo asignar. Verifica tus permisos.");
-    } finally {
-      setLoading(false);
+    } else {
+      // Lógica de asignación
+      setLoadingId(rol.id);
+      try {
+        if (rol.nombre === 'MANAGER') {
+          await rolService.convertirEnManager(usuarioId);
+        } else {
+          await rolService.asignarRol(usuarioId, rol.id);
+        }
+        setRolesUser(prev => [...prev, rol]);
+        showSuccessAlert("Asignado", `Ahora el usuario es ${rol.nombre}.`);
+      } catch {
+        showErrorAlert("Error", "No se pudo asignar el rol.");
+      } finally {
+        setLoadingId(null);
+      }
     }
   };
-
-  // 4. Manejar Eliminación
-  const handleRemove = async (identifier: number | string) => {
-    // Si es string, buscamos su ID numérico en el catálogo
-    const rolId = typeof identifier === 'string' 
-      ? catalogo.find(r => r.nombre === identifier)?.id 
-      : identifier;
-
-    if (!rolId) return showErrorAlert("Error", "No se encontró el ID del rol.");
-
-    const confirm = await showConfirmDialog("¿Quitar permiso?", "El usuario perderá acceso a este nivel.");
-    if (!confirm) return;
-
-    setLoading(true);
-    try {
-      await rolService.removerRol(usuarioId, rolId);
-      
-      // Actualizamos UI filtrando el rol removido
-      setRolesUser(prev => prev.filter(r => {
-        const cId = typeof r === 'string' ? catalogo.find(c => c.nombre === r)?.id : r.id;
-        return cId !== rolId;
-      }));
-      showSuccessAlert("Removido", "El rol ha sido eliminado.");
-    } catch {
-      showErrorAlert("Error", "No se pudo completar la operación.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Filtro para el selector: No mostrar roles que ya tiene
-  const disponibles = catalogo.filter(cat => 
-    !rolesUser.some(ur => (typeof ur === 'string' ? ur === cat.nombre : ur.id === cat.id))
-  );
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-3 p-4 bg-neutral-50/50 rounded-2xl border border-neutral-100 min-h-1">
-        <div className="flex flex-wrap gap-2">
-          {rolesUser.length > 0 ? (
-            rolesUser.map((rol, index) => (
-              <RolBadge 
-                // Usamos una key combinada para evitar errores de React
-                key={typeof rol === 'string' ? `${rol}-${index}` : rol.id} 
-                rol={rol} 
-                onRemove={handleRemove} 
-                isLoading={loading} 
-              />
-            ))
-          ) : (
-            <span className="text-[11px] text-neutral-400 italic">Sin roles asignados.</span>
-          )}
-        </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      {catalogo.map((rol) => {
+        const activo = tieneRol(rol.nombre);
+        const isLoading = loadingId === rol.id;
 
-        {/* Solo mostramos el selector si hay catálogo cargado y roles disponibles */}
-        {disponibles.length > 0 && catalogo.length > 0 && (
-          <>
-            <div className="h-6 w-px bg-neutral-200 mx-2 hidden sm:block"></div>
-            <RolSelector 
-              rolesDisponibles={disponibles} 
-              onAssign={handleAssign} 
-              isLoading={loading} 
-            />
-          </>
-        )}
-      </div>
+        return (
+          <label
+            key={rol.id}
+            className={`
+              relative flex items-center justify-between p-4 rounded-2xl border-2 transition-all cursor-pointer
+              ${activo 
+                ? 'bg-green-50 border-green-500 shadow-sm shadow-green-100' 
+                : 'bg-white border-neutral-100 hover:border-neutral-200'}
+              ${isLoading ? 'opacity-70 pointer-events-none' : ''}
+            `}
+          >
+            <div className="flex items-center gap-3">
+              <div className={`
+                p-2 rounded-xl 
+                ${activo ? 'bg-green-500 text-white' : 'bg-neutral-100 text-neutral-400'}
+              `}>
+                <ShieldCheck size={20} />
+              </div>
+              <div>
+                <span className={`block font-bold text-sm ${activo ? 'text-green-700' : 'text-neutral-700'}`}>
+                  {rol.nombre}
+                </span>
+                <span className="text-[10px] text-neutral-400 uppercase font-medium tracking-tight">
+                  Acceso de {rol.nombre.toLowerCase()}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center">
+              {isLoading ? (
+                <Loader2 className="animate-spin text-neutral-400" size={20} />
+              ) : (
+                <input
+                  type="checkbox"
+                  className="w-5 h-5 accent-green-600 rounded-lg cursor-pointer"
+                  checked={activo}
+                  onChange={() => handleToggleRol(rol)}
+                />
+              )}
+            </div>
+          </label>
+        );
+      })}
     </div>
   );
 };

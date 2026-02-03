@@ -84,7 +84,7 @@ export default function RolesPage() {
             {usuario ? (
               <div className="bg-white rounded-4xl md:rounded-[2.5rem] shadow-xl border border-neutral-100 overflow-hidden">
                 {/* Cabecera del resultado adaptable */}
-                <div className="bg-neutral-50/50 px-6 py-6 md:px-10 md:py-8 border-b border-neutral-100 flex flex-col sm:flex-row items-center text-center sm:text-left gap-4">
+                <div className="bg-neutral-50/50 px-6 py-10 md:px-10 md:py-8 border-b border-neutral-100 flex flex-col sm:flex-row items-center text-center sm:text-left gap-4">
                   <div className="h-16 w-16 bg-green-600 text-white rounded-2xl flex items-center justify-center shrink-0">
                     <User size={30} />
                   </div>
@@ -115,7 +115,7 @@ export default function RolesPage() {
               </div>
             ) : (
               !loading && (
-                <div className="py-16 md:py-24 border-2 border-dashed border-neutral-200 rounded-4xl md:rounded-[3rem] text-center px-4">
+                <div className="py-16 md:py-26 border-2 border-dashed border-neutral-200 rounded-4xl md:rounded-[3rem] text-center px-4">
                   <Search size={40} className="mx-auto text-neutral-300 mb-4" />
                   <h3 className="text-neutral-900 font-bold text-lg">¿A quién buscamos hoy?</h3>
                   <p className="text-neutral-500 mt-2 text-sm max-w-xs mx-auto">

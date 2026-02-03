@@ -59,7 +59,7 @@ export default function CrearDisciplinaModal({ onClose, onSuccess }: CrearDiscip
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-gradient-to-r from-primary-500 to-secondary-500 text-white p-6 rounded-t-2xl">
+        <div className="sticky top-0 bg-linear-to-r from-primary-500 to-secondary-500 text-white p-6 rounded-t-2xl">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold">Nueva Disciplina</h2>
             <button
