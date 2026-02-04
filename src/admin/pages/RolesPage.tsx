@@ -4,8 +4,7 @@ import { Search, ArrowLeft, User, Mail, ShieldAlert, Loader2 } from 'lucide-reac
 import { usuarioService } from "../services/usuarioService";
 import { UserRolesManager } from "../components/UserRolesManager";
 import { showErrorAlert } from "../../shared/utils/alerts";
-import MainLayout from "../../shared/components/MainLayout";
-import Footer from '../../shared/components/Footer';
+import DashboardLayout from "../../shared/components/DashboardLayout";
 
 export default function RolesPage() {
   const [email, setEmail] = useState("");
@@ -29,10 +28,8 @@ export default function RolesPage() {
   };
 
   return (
-    <>
-      <MainLayout>
-        {/* Agregamos overflow-x-hidden al contenedor padre por si acaso */}
-        <div className="max-w-4xl mx-auto py-6 md:py-12 px-4 md:px-6 relative">
+    <DashboardLayout>
+      <div className="max-w-4xl mx-auto py-6 md:py-12 px-4 md:px-6 relative">
           
           {/* BOTÓN VOLVER: Adaptable */}
           <div className="lg:absolute lg:-left-16 lg:top-14 mb-6 lg:mb-0">
@@ -126,8 +123,6 @@ export default function RolesPage() {
             )}
           </div>
         </div>
-      </MainLayout>
-      <Footer />
-    </>
+    </DashboardLayout>
   );
 }

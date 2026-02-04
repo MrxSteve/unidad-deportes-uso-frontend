@@ -96,10 +96,10 @@ export default function CompletarPerfilPage() {
     <DashboardLayout>
       <div className="max-w-3xl mx-auto animate-fade-in">
         <Card className="shadow-2xl border-none overflow-hidden">
-          <div className="h-2 bg-gradient-to-r from-primary-500 via-secondary-500 to-primary-600"></div>
-          <CardHeader className="bg-gradient-to-br from-neutral-50 to-white p-8">
+          <div className="h-2 bg-linear-to-r from-primary-500 via-secondary-500 to-primary-600"></div>
+          <CardHeader className="bg-linear-to-br from-neutral-50 to-white p-8">
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl text-white shadow-lg">
+              <div className="p-3 bg-linear-to-br from-primary-500 to-primary-600 rounded-2xl text-white shadow-lg">
                 <User className="w-7 h-7" />
               </div>
               <div className="flex-1">
@@ -134,7 +134,7 @@ export default function CompletarPerfilPage() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div>
-                    <label className="block text-sm font-semibold text-neutral-700 mb-2 flex items-center gap-2">
+                    <label className="flex items-center gap-2 text-sm font-semibold text-neutral-700 mb-2">
                       <IdCard className="w-4 h-4 text-neutral-500" />
                       Expediente <span className="text-red-500">*</span>
                     </label>
@@ -148,7 +148,7 @@ export default function CompletarPerfilPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-neutral-700 mb-2 flex items-center gap-2">
+                    <label className="flex items-center gap-2 text-sm font-semibold text-neutral-700 mb-2">
                       <IdCard className="w-4 h-4 text-neutral-500" />
                       Código de Estudiante <span className="text-red-500">*</span>
                     </label>
@@ -219,7 +219,7 @@ export default function CompletarPerfilPage() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div>
-                    <label className="block text-sm font-semibold text-neutral-700 mb-2 flex items-center gap-2">
+                    <label className="flex items-center gap-2 text-sm font-semibold text-neutral-700 mb-2">
                       <Phone className="w-4 h-4 text-neutral-500" />
                       Teléfono <span className="text-red-500">*</span>
                     </label>
@@ -270,7 +270,7 @@ export default function CompletarPerfilPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-neutral-700 mb-2 flex items-center gap-2">
+                  <label className="flex items-center gap-2 text-sm font-semibold text-neutral-700 mb-2">
                     <Calendar className="w-4 h-4 text-neutral-500" />
                     Fecha de Nacimiento <span className="text-red-500">*</span>
                   </label>
