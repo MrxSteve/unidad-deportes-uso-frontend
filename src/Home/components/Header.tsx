@@ -48,7 +48,7 @@ export default function Header() {
           
           <div className="flex flex-col">
             <span className="text-2xl md:text-3xl font-black bg-linear-to-r from-green-500 to-green-300 bg-clip-text text-transparent tracking-tighter leading-none">
-              Unidad Deportiva
+              Unidad de Deporte
             </span>
             
           </div>
