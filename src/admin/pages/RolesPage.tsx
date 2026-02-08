@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Search, ArrowLeft, User, Mail, ShieldAlert, Loader2 } from 'lucide-react';
+import { Search, User, Mail, ShieldCheck, Loader2, Fingerprint, LayoutGrid } from 'lucide-react';
 import { usuarioService } from "../services/usuarioService";
 import { UserRolesManager } from "../components/UserRolesManager";
 import { showErrorAlert } from "../../shared/utils/alerts";
@@ -10,7 +9,6 @@ export default function RolesPage() {
   const [email, setEmail] = useState("");
   const [usuario, setUsuario] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,100 +27,104 @@ export default function RolesPage() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-4xl mx-auto py-6 md:py-12 px-4 md:px-6 relative">
-          
-          {/* BOTÓN VOLVER: Adaptable */}
-          <div className="lg:absolute lg:-left-16 lg:top-14 mb-6 lg:mb-0">
+      <div className="max-w-5xl mx-auto py-8 md:py-14 px-4 sm:px-6 lg:px-8 relative">
+        
+        {/* Header: Tipografía Slate/Indigo */}
+        <header className="mb-10 text-center md:text-left">
+          <div className="inline-flex items-center justify-center p-2.5 bg-indigo-50 rounded-2xl mb-4 text-indigo-600 shadow-sm shadow-indigo-100">
+            <Fingerprint size={28} />
+          </div>
+          <h1 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
+            Gestión de <span className="bg-clip-text text-transparent bg-linear-to-r from-indigo-600 to-violet-500">Permisos</span>
+          </h1>
+          <p className="text-slate-500 mt-3 text-lg max-w-2xl">
+            Controla los accesos y niveles de seguridad de los usuarios registrados.
+          </p>
+        </header>
+
+        {/* Buscador: Diseño Robusto */}
+        <form onSubmit={handleSearch} className="relative mb-12">
+          <div className="relative flex flex-col md:flex-row items-stretch gap-3">
+            <div className="relative flex-1 group">
+              <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors">
+                <Search size={22} />
+              </div>
+              <input 
+                type="email" 
+                placeholder="Busca por correo institucional..." 
+                className="w-full pl-14 pr-6 py-5 bg-white rounded-2xl shadow-sm border border-slate-200 outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all text-slate-800 text-lg placeholder:text-slate-400"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
             <button 
-              onClick={() => navigate('/dashboard')}
-              className="flex items-center gap-2 lg:gap-0 justify-center min-w-16 lg:min-w-0 lg:w-12 lg:h-12 py-2 px-4 lg:p-0 rounded-2xl lg:rounded-full bg-white border border-neutral-200 text-neutral-500 shadow-sm hover:shadow-md hover:text-primary-600 transition-all group"
+              disabled={loading}
+              className="bg-slate-900 hover:bg-slate-800 text-white px-10 py-5 rounded-2xl font-bold transition-all shadow-xl shadow-slate-200 active:scale-95 flex justify-center items-center gap-2"
             >
-              <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-              <span className="text-sm font-bold lg:hidden">Volver al inicio</span>
+              {loading ? <Loader2 className="animate-spin" size={20} /> : 'Buscar Usuario'}
             </button>
           </div>
+        </form>
 
-          {/* Header: Centrado en móvil, izquierda en desktop */}
-          <header className="mb-8 md:mb-12 text-center md:text-left">
-            <h1 className="text-3xl md:text-4xl font-black text-secondary-600 tracking-tight leading-tight">
-              Gestión de <span className="text-green-500">Roles</span>
-            </h1>
-            <p className="text-neutral-500 mt-2 text-base md:text-lg">
-              Administra los permisos de acceso de los usuarios del sistema.
-            </p>
-          </header>
-
-          {/* Buscador: Se ajusta el padding y el botón en móvil */}
-          <form onSubmit={handleSearch} className="relative mb-10 md:mb-16">
-            <div className="relative flex flex-col md:flex-row items-stretch md:items-center gap-3">
-              <div className="relative flex-1">
-                <div className="absolute left-5 top-1/2 -translate-y-1/2 text-neutral-400">
-                  <Search size={20} />
-                </div>
-                <input 
-                  type="email" 
-                  placeholder="Correo del usuario..." 
-                  className="w-full pl-12 pr-4 py-4 bg-white rounded-2xl md:rounded-3xl shadow-sm border border-neutral-200 outline-none focus:border-green-500 transition-all text-neutral-800"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-              <button 
-                disabled={loading}
-                className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-lg shadow-green-200 active:scale-95 flex justify-center items-center"
-              >
-                {loading ? <Loader2 className="animate-spin" size={20} /> : 'Buscar'}
-              </button>
-            </div>
-          </form>
-
-          {/* Resultado del Usuario / Empty State */}
-          <div className="w-full">
-            {usuario ? (
-              <div className="bg-white rounded-4xl md:rounded-[2.5rem] shadow-xl border border-neutral-100 overflow-hidden">
-                {/* Cabecera del resultado adaptable */}
-                <div className="bg-neutral-50/50 px-6 py-10 md:px-10 md:py-8 border-b border-neutral-100 flex flex-col sm:flex-row items-center text-center sm:text-left gap-4">
-                  <div className="h-16 w-16 bg-green-600 text-white rounded-2xl flex items-center justify-center shrink-0">
-                    <User size={30} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h2 className="text-xl md:text-2xl font-black text-neutral-900 truncate uppercase">
-                      {usuario.nombreCompleto}
-                    </h2>
-                    <div className="flex items-center justify-center sm:justify-start text-neutral-500 mt-1 break-all">
-                      <Mail size={14} className="mr-2 shrink-0" />
-                      <span className="text-sm md:text-base">{usuario.email}</span>
+        <div className="w-full">
+          {usuario ? (
+            <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+              
+              {/* Cabecera del Resultado: Contraste Indigo/Slate */}
+              <div className="bg-slate-50/50 px-8 py-10 md:px-12 border-b border-slate-100 flex flex-col sm:flex-row items-center gap-6">
+                <div className="relative group">
+                    <div className="h-20 w-20 bg-indigo-600 text-white rounded-[1.5rem] flex items-center justify-center shadow-lg shadow-indigo-200 group-hover:scale-105 transition-transform">
+                        <User size={36} strokeWidth={1.5} />
                     </div>
-                  </div>
-                  <div className="bg-green-100 text-green-700 text-[10px] font-black px-3 py-1 rounded-lg border border-green-200 shrink-0">
-                    ACTIVO
+                    <div className="absolute -bottom-1 -right-1 h-6 w-6 bg-green-500 border-4 border-white rounded-full"></div>
+                </div>
+
+                <div className="flex-1 text-center sm:text-left">
+                  <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 truncate uppercase tracking-tight">
+                    {usuario.nombreCompleto}
+                  </h2>
+                  <div className="flex items-center justify-center sm:justify-start text-slate-500 mt-1.5 font-medium">
+                    <Mail size={16} className="mr-2 opacity-70" />
+                    <span className="text-sm md:text-base">{usuario.email}</span>
                   </div>
                 </div>
 
-                <div className="p-6 md:p-10">
-                   {/* ... contenido de UserRolesManager */}
-                   <div className="flex items-center space-x-2 mb-6">
-                      <ShieldAlert size={20} className="text-green-600" />
-                      <h3 className="font-bold text-neutral-800">Privilegios y Roles</h3>
-                   </div>
-                   <div className="bg-neutral-50 rounded-2xl p-4 md:p-8 border-2 border-dashed border-neutral-200">
-                      <UserRolesManager usuarioId={usuario.id} rolesActuales={usuario.roles} />
-                   </div>
+                <div className="bg-emerald-50 text-emerald-700 text-[10px] font-black px-4 py-2 rounded-xl border border-emerald-100 tracking-widest uppercase">
+                  Miembro Activo
                 </div>
               </div>
-            ) : (
-              !loading && (
-                <div className="py-16 md:py-26 border-2 border-dashed border-neutral-200 rounded-4xl md:rounded-[3rem] text-center px-4">
-                  <Search size={40} className="mx-auto text-neutral-300 mb-4" />
-                  <h3 className="text-neutral-900 font-bold text-lg">¿A quién buscamos hoy?</h3>
-                  <p className="text-neutral-500 mt-2 text-sm max-w-xs mx-auto">
-                    Ingresa un correo para gestionar los permisos de un miembro del equipo.
-                  </p>
+
+              {/* Sección de Privilegios */}
+              <div className="p-8 md:p-12">
+                 <div className="flex items-center justify-between mb-8">
+                    <div className="flex items-center space-x-3">
+                        <div className="p-2 bg-amber-50 rounded-xl text-amber-600">
+                            <ShieldCheck size={24} />
+                        </div>
+                        <h3 className="font-bold text-slate-800 text-xl tracking-tight">Privilegios y Roles</h3>
+                    </div>
+                 </div>
+                 
+                 <div className="bg-slate-50/80 rounded-4xl p-4 md:p-10 border border-slate-100 shadow-inner">
+                    <UserRolesManager usuarioId={usuario.id} rolesActuales={usuario.roles} />
+                 </div>
+              </div>
+            </div>
+          ) : (
+            !loading && (
+              <div className="py-24 border-2 border-dashed border-slate-200 rounded-[3rem] text-center px-4 bg-slate-50/20 group hover:border-indigo-300 transition-colors">
+                <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-slate-100 group-hover:rotate-6 transition-transform">
+                    <LayoutGrid size={32} className="text-slate-300 group-hover:text-indigo-400 transition-colors" />
                 </div>
-              )
-            )}
-          </div>
+                <h3 className="text-slate-900 font-bold text-xl">Panel Vacío</h3>
+                <p className="text-slate-400 mt-2 text-sm max-w-xs mx-auto">
+                  Utiliza la barra superior para buscar un usuario y definir sus responsabilidades en el sistema.
+                </p>
+              </div>
+            )
+          )}
         </div>
+      </div>
     </DashboardLayout>
   );
 }

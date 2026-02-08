@@ -1,25 +1,34 @@
 import { useState, useEffect } from 'react';
+import { UserPlus, Edit, Trash2, Search, Trophy, CheckCircle } from 'lucide-react'; 
 import DashboardLayout from '../../../shared/components/DashboardLayout';
-import Card, { CardHeader, CardTitle, CardContent } from '../../../shared/components/Card';
+import Card, { CardContent } from '../../../shared/components/Card';
 import Button from '../../../shared/components/Button';
 import LoadingSpinner from '../../../shared/components/LoadingSpinner';
 import { disciplinaService } from '../../../services/disciplinaService';
+import { inscripcionService } from '../../../admin/services/inscripcionService'; // Asegúrate de tener este service creado
 import { useAuthStore } from '../../../stores/authStore';
 import { ROLES } from '../../../auth/utils/roleUtils';
 import type { DisciplinaResponse } from '../../../types/disciplina.types';
-import { showErrorAlert, showSuccessAlert, showConfirmDialog } from '../../../shared/utils/alerts';
+import { showErrorAlert, showSuccessAlert, showConfirmDialog, showConfirmAlert } from '../../../shared/utils/alerts';
 import CrearDisciplinaModal from '../components/CrearDisciplinaModal';
 import EditarDisciplinaModal from '../components/EditarDisciplinaModal';
+import InscribirEstudianteModal from '../../../admin/components/InscribirEstudianteModal';
 
 export default function DisciplinasPage() {
-  const { usuario, activeRole } = useAuthStore();
+  const { activeRole } = useAuthStore();
   const [disciplinas, setDisciplinas] = useState<DisciplinaResponse[]>([]);
   const [loading, setLoading] = useState(true);
+  const [busqueda, setBusqueda] = useState("");
+  
+  // Estados para Modales
   const [mostrarModalCrear, setMostrarModalCrear] = useState(false);
   const [mostrarModalEditar, setMostrarModalEditar] = useState(false);
+  const [mostrarModalInscribir, setMostrarModalInscribir] = useState(false); 
   const [disciplinaSeleccionada, setDisciplinaSeleccionada] = useState<DisciplinaResponse | null>(null);
 
+  // Permisos simplificados
   const puedeGestionar = activeRole === ROLES.SYSADMIN || activeRole === ROLES.MANAGER;
+  const esEstudiante = activeRole === ROLES.STUDENT;
 
   const cargarDisciplinas = async () => {
     try {
@@ -37,13 +46,43 @@ export default function DisciplinasPage() {
     cargarDisciplinas();
   }, []);
 
-  const handleCrearDisciplina = () => {
-    setMostrarModalCrear(true);
+ const handleAutoInscripcion = async (disciplina: DisciplinaResponse) => {
+  const confirmado = await showConfirmAlert(
+    'Confirmar Inscripción',
+    `¿Deseas inscribirte en la disciplina de ${disciplina.nombre}?`
+  );
+
+  if (confirmado) {
+    try {
+      await inscripcionService.inscribirseComoEstudiante(disciplina.id);
+      showSuccessAlert('¡Te has inscrito correctamente!');
+    } catch (error) {
+      showErrorAlert('No se pudo completar la inscripción.');
+    }
+  }
+};
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!busqueda.trim()) {
+      cargarDisciplinas();
+      return;
+    }
+    try {
+      setLoading(true);
+      const data = await disciplinaService.buscarPorNombre(busqueda);
+      setDisciplinas(data ? [data] : []);
+    } catch (error) {
+      setDisciplinas([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleEditarDisciplina = (disciplina: DisciplinaResponse) => {
+ 
+
+  const handleInscribirManual = (disciplina: DisciplinaResponse) => {
     setDisciplinaSeleccionada(disciplina);
-    setMostrarModalEditar(true);
+    setMostrarModalInscribir(true);
   };
 
   const handleEliminarDisciplina = async (disciplina: DisciplinaResponse) => {
@@ -51,7 +90,6 @@ export default function DisciplinasPage() {
       '¿Estás seguro?',
       `Se eliminará la disciplina "${disciplina.nombre}"`
     );
-
     if (confirmado) {
       try {
         await disciplinaService.eliminarDisciplina(disciplina.id);
@@ -61,17 +99,6 @@ export default function DisciplinasPage() {
         showErrorAlert('Error al eliminar disciplina');
       }
     }
-  };
-
-  const handleDisciplinaCreada = () => {
-    setMostrarModalCrear(false);
-    cargarDisciplinas();
-  };
-
-  const handleDisciplinaActualizada = () => {
-    setMostrarModalEditar(false);
-    setDisciplinaSeleccionada(null);
-    cargarDisciplinas();
   };
 
   if (loading) {
@@ -87,101 +114,126 @@ export default function DisciplinasPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-neutral-800">Disciplinas Deportivas</h1>
-            <p className="text-neutral-600 mt-1">Explora las disciplinas disponibles</p>
+            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Catálogo Deportivo</h1>
+            <p className="text-slate-500 mt-1">
+              {esEstudiante ? 'Elige tu disciplina e inscríbete' : 'Gestiona disciplinas e inscripciones'}
+            </p>
           </div>
-          {puedeGestionar && (
-            <Button onClick={handleCrearDisciplina} variant="primary">
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              Nueva Disciplina
-            </Button>
-          )}
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <form onSubmit={handleSearch} className="flex gap-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                <input
+                  type="text"
+                  placeholder="Buscar disciplina..."
+                  className="pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none w-full sm:w-64 transition-all"
+                  value={busqueda}
+                  onChange={(e) => setBusqueda(e.target.value)}
+                />
+              </div>
+            </form>
+
+            {puedeGestionar && (
+              <Button onClick={() => setMostrarModalCrear(true)} variant="primary" className="shadow-lg shadow-indigo-200">
+                <Trophy size={18} className="mr-2" />
+                Nueva Disciplina
+              </Button>
+            )}
+          </div>
         </div>
 
-        {disciplinas.length === 0 ? (
-          <Card>
-            <CardContent>
-              <div className="text-center py-12">
-                <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                </svg>
-                <p className="text-gray-600 mb-4">No hay disciplinas disponibles</p>
-                {puedeGestionar && (
-                  <Button onClick={handleCrearDisciplina} variant="primary">
-                    Crear la primera disciplina
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {disciplinas.map((disciplina) => (
-              <Card key={disciplina.id} hoverable>
-                <CardContent>
-                  {disciplina.imagenUrl && (
-                    <div className="mb-4 rounded-xl overflow-hidden bg-neutral-100">
-                      <img
-                        src={disciplina.imagenUrl}
-                        alt={disciplina.nombre}
-                        className="w-full h-48 object-cover"
-                      />
+        {/* Listado de Disciplinas */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {disciplinas.map((disciplina) => (
+            <Card key={disciplina.id} hoverable className="overflow-hidden border-none shadow-xl shadow-slate-200/60 bg-white group">
+              <CardContent className="p-0">
+                <div className="relative h-48 overflow-hidden">
+                  {disciplina.imagenUrl ? (
+                    <img src={disciplina.imagenUrl} alt={disciplina.nombre} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+                  ) : (
+                    <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-300">
+                      <Trophy size={48} />
                     </div>
                   )}
-                  <h3 className="text-xl font-bold text-neutral-800 mb-3">{disciplina.nombre}</h3>
+                </div>
+                
+                <div className="p-6">
+                  <h3 className="text-xl font-bold text-slate-900 mb-4 tracking-tight uppercase">{disciplina.nombre}</h3>
                   
-                  <div className="flex gap-2">
+                  <div className="flex flex-col gap-2">
+                    {/* ACCIÓN PARA ESTUDIANTE */}
+                    {esEstudiante && (
+                      <Button 
+                        onClick={() => handleAutoInscripcion(disciplina)}
+                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-md"
+                      >
+                        <CheckCircle size={18} className="mr-2" />
+                        Inscribirme
+                      </Button>
+                    )}
+
+                    {/* ACCIONES PARA MANAGER/ADMIN */}
                     {puedeGestionar && (
                       <>
-                        <Button
-                          onClick={() => handleEditarDisciplina(disciplina)}
-                          variant="secondary"
-                          className="flex-1"
+                        <Button 
+                          onClick={() => handleInscribirManual(disciplina)} 
+                          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-md"
                         >
-                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                          Editar
+                          <UserPlus size={18} className="mr-2" />
+                          Inscribir Estudiante
                         </Button>
-                        <Button
-                          onClick={() => handleEliminarDisciplina(disciplina)}
-                          variant="danger"
-                          className="flex-1"
-                        >
-                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                          Eliminar
-                        </Button>
+                        
+                        <div className="flex gap-2">
+                          <Button 
+                            onClick={() => { setDisciplinaSeleccionada(disciplina); setMostrarModalEditar(true); }} 
+                            variant="secondary" 
+                            className="flex-1"
+                          >
+                            <Edit size={16} className="mr-2" /> Editar
+                          </Button>
+                          <Button 
+                            onClick={() => handleEliminarDisciplina(disciplina)} 
+                            variant="danger" 
+                            className="flex-1"
+                          >
+                            <Trash2 size={16} className="mr-2" /> Borrar
+                          </Button>
+                        </div>
                       </>
                     )}
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
 
+      {/* MODALES */}
       {mostrarModalCrear && (
-        <CrearDisciplinaModal
-          onClose={() => setMostrarModalCrear(false)}
-          onSuccess={handleDisciplinaCreada}
-        />
+        <CrearDisciplinaModal onClose={() => setMostrarModalCrear(false)} onSuccess={cargarDisciplinas} />
       )}
 
       {mostrarModalEditar && disciplinaSeleccionada && (
         <EditarDisciplinaModal
           disciplina={disciplinaSeleccionada}
-          onClose={() => {
-            setMostrarModalEditar(false);
+          onClose={() => { setMostrarModalEditar(false); setDisciplinaSeleccionada(null); }}
+          onSuccess={cargarDisciplinas}
+        />
+      )}
+
+      {mostrarModalInscribir && disciplinaSeleccionada && (
+        <InscribirEstudianteModal
+          disciplina={disciplinaSeleccionada}
+          onClose={() => { setMostrarModalInscribir(false); setDisciplinaSeleccionada(null); }}
+          onSuccess={() => {
+            setMostrarModalInscribir(false);
             setDisciplinaSeleccionada(null);
+            showSuccessAlert('Inscripción manual realizada con éxito');
           }}
-          onSuccess={handleDisciplinaActualizada}
         />
       )}
     </DashboardLayout>

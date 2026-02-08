@@ -7,86 +7,72 @@ import LoginPage from './auth/pages/LoginPage';
 import AuthCallback from './auth/pages/AuthCallback';
 import DashboardHome from './auth/pages/DashboardHome';
 import CompletarPerfilPage from './auth/pages/CompletarPerfilPage';
-import PerfilPage from './auth/pages/PerfilPage'; // <--- 1. IMPORTACIÓN NUEVA
+import PerfilPage from './auth/pages/PerfilPage';
 
-// Home Page
+// Home & Features
 import HomePage from './Home/pages/HomePage';
-
-// Disciplinas
 import DisciplinasPage from './features/disciplinas/pages/DisciplinasPage';
+import ReportesPage from './admin/pages/ReportePage';
+
+// Admin & Config
+import RolesPage from './admin/pages/RolesPage';
+import ConfigDashboard from './admin/components/ConfigDashboard';
 
 // Components
 import ProtectedRoute from './auth/components/ProtectedRoute';
 
-// Admin Roles
-import RolesPage from './admin/pages/RolesPage';
-
 function App() {
   return (
     <BrowserRouter>
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
+      <ToastContainer 
+        position="top-right" 
+        autoClose={3000} 
+        theme="light" 
       />
       
       <Routes>
+        {/* --- RUTAS PÚBLICAS --- */}
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
         
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <DashboardHome />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* 2. NUEVA RUTA DE PERFIL (Protegida) */}
-        <Route
-          path="/perfil"
-          element={
-            <ProtectedRoute>
-              <PerfilPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/admin/usuarios"
-          element={
-            <ProtectedRoute>
-              <RolesPage />
-            </ProtectedRoute>
-          }
+        {/* --- RUTAS PROTEGIDAS (DASHBOARD) --- */}
+        <Route 
+          path="/dashboard" 
+          element={<ProtectedRoute><DashboardHome /></ProtectedRoute>} 
         />
         
-        <Route
-          path="/completar-perfil"
-          element={
-            <ProtectedRoute>
-              <CompletarPerfilPage />
-            </ProtectedRoute>
-          }
+        <Route 
+          path="/perfil" 
+          element={<ProtectedRoute><PerfilPage /></ProtectedRoute>} 
         />
         
-        <Route
-          path="/disciplinas"
-          element={
-            <ProtectedRoute>
-              <DisciplinasPage />
-            </ProtectedRoute>
-          }
+        <Route 
+          path="/completar-perfil" 
+          element={<ProtectedRoute><CompletarPerfilPage /></ProtectedRoute>} 
         />
+        
+        <Route 
+          path="/disciplinas" 
+          element={<ProtectedRoute><DisciplinasPage /></ProtectedRoute>} 
+        />
+
+        {/* --- SECCIÓN DE REPORTES Y CONFIGURACIÓN --- */}
+        <Route 
+          path="/reportes" 
+          element={<ProtectedRoute><ReportesPage /></ProtectedRoute>} 
+        />
+
+        <Route 
+          path="/configuracion" 
+          element={<ProtectedRoute><ConfigDashboard /></ProtectedRoute>} 
+        />
+
+        <Route 
+          path="/configuracion/usuarios" 
+          element={<ProtectedRoute><RolesPage /></ProtectedRoute>} 
+        />
+        
       </Routes>
     </BrowserRouter>
   );
